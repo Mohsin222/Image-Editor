@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:image_editor/widgets/edit_view_model.dart';
+import 'package:screenshot/screenshot.dart';
 
 import '../widgets/image_text.dart';
 
@@ -23,49 +24,57 @@ class _EditImageScreenState extends EditImageViewModel {
     return Scaffold(
       appBar: _appbar,
       floatingActionButton: _addNewTextFab,
-      body: SafeArea(
-          child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.3,
-        child: Stack(
-          children: [
-            _selectedImage,
-       
-            for(int i=0 ;i< texts.length;i++)
-              Positioned(
-                left: texts[i].left,
-                top: texts[i].top,
-                child: GestureDetector(onLongPress: (){
-                  print('Long press detected');
-                },
-                onTap: (){
-                   print('Single press detected');
-                },
-                child: Draggable(
-                  feedback: ImageText(textInfo:texts[i]),
-                  child: ImageText(textInfo:texts[i]),
-                  onDragEnd: (drag){
-                    final renderBox =context.findRenderObject() as RenderBox;
-                    Offset off =renderBox.globalToLocal(drag.offset);
+      body: Screenshot(
+        controller: screenshotController,
+        child: SafeArea(
+            child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.3,
+          child: Stack(
+            children: [
+              _selectedImage,
+         
+              for(int i=0 ;i< texts.length;i++)
+                Positioned(
+                  left: texts[i].left,
+                  top: texts[i].top,
+                  child: GestureDetector(onLongPress: (){
+                    // print('Long press detected');
                     setState(() {
-                      texts[i].top=off.dy - 96;
-                      texts[i].left=off.dx;
+                      currentIndex=i;
+                      removeText(context);
                     });
                   },
+                  onTap: (){
+                    //  print('Single press detected');
+                    setCurrentIndex(context,i);
+                  },
+                  child: Draggable(
+                    feedback: ImageText(textInfo:texts[i]),
+                    child: ImageText(textInfo:texts[i]),
+                    onDragEnd: (drag){
+                      final renderBox =context.findRenderObject() as RenderBox;
+                      Offset off =renderBox.globalToLocal(drag.offset);
+                      setState(() {
+                        texts[i].top=off.dy - 96;
+                        texts[i].left=off.dx;
+                      });
+                    },
+                  ),
+        
+        
+                  
+                  ),
                 ),
-
-
-                
-                ),
-              ),
-
-              creatorText.text.isNotEmpty ? Positioned(left: 0,bottom: 0,child: Text(creatorText.text,style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold,
-              color: Colors.black.withOpacity(0.3),),), ): SizedBox.shrink()
-            
-
-      
-          ],
-        ),
-      )),
+        
+                creatorText.text.isNotEmpty ? Positioned(left: 0,bottom: 0,child: Text(creatorText.text,style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold,
+                color: Colors.black.withOpacity(0.3),),), ): SizedBox.shrink()
+              
+        
+        
+            ],
+          ),
+        )),
+      ),
     );
   }
 
@@ -96,57 +105,50 @@ class _EditImageScreenState extends EditImageViewModel {
           children: [
             IconButton(
               icon:const Icon(Icons.save,color: Colors.black,),
-              onPressed: (){},
+              onPressed: () => saveToGalery(context),
               tooltip: 'Save Image', ),
     
                        IconButton(
               icon:const Icon(Icons.add,color: Colors.black,),
-              onPressed: (){},
+              onPressed: ()=>increaseFontSize(),
               tooltip: 'Increase Font size', ),
 
                           IconButton(
               icon:const Icon(Icons.remove,color: Colors.black,),
-              onPressed: (){},
+              onPressed: ()=>decreaseFontSize(),
               tooltip: 'Decrease Font size', ),
 
 
                           IconButton(
               icon:const Icon(Icons.format_align_left,color: Colors.black,),
-              onPressed: (){},
+              onPressed: ()=> alignLeft(),
               tooltip: 'Align Left ', ),
                           IconButton(
               icon:const Icon(Icons.format_align_center,color: Colors.black,),
-              onPressed: (){},
+              onPressed: ()=> alignCenter(),
               tooltip: 'Align Center', ),
                           IconButton(
               icon:const Icon(Icons.format_align_right,color: Colors.black,),
-              onPressed: (){},
+              onPressed: ()=> alignRight(),
               tooltip: 'Align Right', ),
                           IconButton(
               icon:const Icon(Icons.format_bold,color: Colors.black,),
-              onPressed: (){},
+              onPressed: ()=>boldText(),
               tooltip: 'Bold', ),            IconButton(
               icon:const Icon(Icons.format_italic,color: Colors.black,),
-              onPressed: (){},
+              onPressed: ()=>italicText(),
               tooltip: 'Italic', ),
                           IconButton(
               icon:const Icon(Icons.space_bar,color: Colors.black,),
-              onPressed: (){},
+              onPressed: ()=> addLinesToText(),
               tooltip: 'Add New Line', ),
 
-              Tooltip(
-                message: 'White',
-                child: GestureDetector(
-                  onTap: (){},
-                  child:  const CircleAvatar(backgroundColor: Colors.white,),
-                ),
-                
-              ),
+        
             const  SizedBox(width: 5,),
                   Tooltip(
                 message: 'Red',
                 child: GestureDetector(
-                  onTap: (){},
+            onTap: ()=>changeTextColor(Colors.red),
                   child:  const CircleAvatar(backgroundColor: Colors.red,),
                 ),
                 
@@ -155,7 +157,7 @@ class _EditImageScreenState extends EditImageViewModel {
                 Tooltip(
                 message: 'Black',
                 child: GestureDetector(
-                  onTap: (){},
+             onTap: ()=>changeTextColor(Colors.black),
                   child:  const CircleAvatar(backgroundColor: Colors.black,),
                 ),
                 
@@ -163,17 +165,17 @@ class _EditImageScreenState extends EditImageViewModel {
                   Tooltip(
                 message: 'White',
                 child: GestureDetector(
-                  onTap: (){},
+       onTap: ()=>changeTextColor(Colors.white),
                   child:  const CircleAvatar(backgroundColor: Colors.white,),
                 ),
                 
               ),
             const  SizedBox(width: 5,),
-            const  SizedBox(width: 5,),
+  
                 Tooltip(
                 message: 'Blue',
                 child: GestureDetector(
-                  onTap: (){},
+      onTap: ()=>changeTextColor(Colors.blue),
                   child:  const CircleAvatar(backgroundColor: Colors.blue,),
                 ),
                 
@@ -182,7 +184,7 @@ class _EditImageScreenState extends EditImageViewModel {
                 Tooltip(
                 message: 'Yellow',
                 child: GestureDetector(
-                  onTap: (){},
+           onTap: ()=>changeTextColor(Colors.yellow),
                   child:  const CircleAvatar(backgroundColor: Colors.yellow,),
                 ),
                 
@@ -191,7 +193,7 @@ class _EditImageScreenState extends EditImageViewModel {
                 Tooltip(
                 message: 'Green',
                 child: GestureDetector(
-                  onTap: (){},
+    onTap: ()=>changeTextColor(Colors.green),
                   child:  const CircleAvatar(backgroundColor: Colors.green,),
                 ),
                 
@@ -200,7 +202,7 @@ class _EditImageScreenState extends EditImageViewModel {
                 Tooltip(
                 message: 'Orange',
                 child: GestureDetector(
-                  onTap: (){},
+        onTap: ()=>changeTextColor(Colors.orange),
                   child:  const CircleAvatar(backgroundColor: Colors.orange,),
                 ),
                 
@@ -209,7 +211,7 @@ class _EditImageScreenState extends EditImageViewModel {
                 Tooltip(
                 message: 'Pink',
                 child: GestureDetector(
-                  onTap: (){},
+             onTap: ()=>changeTextColor(Colors.pink),
                   child:  const CircleAvatar(backgroundColor: Colors.pink,),
                 ),
                 

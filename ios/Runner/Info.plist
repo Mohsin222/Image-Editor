@@ -59,5 +59,10 @@
 
 		<key>NSMicrophoneUsageDescription</key>
 	<string>Mic Usage</string>
+
+
+	<!-- for gallery saver -->
+		<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>To save file in gallery</string>
 </dict>
 </plist>
